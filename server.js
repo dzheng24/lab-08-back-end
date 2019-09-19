@@ -110,13 +110,11 @@ function handleError(error, response){
 }
 
 // connect client to database
-client.connect()
-  .then(() => {
-    app.listen(PORT, () => console.log(`listening on ${PORT}`));
-  }) //only way server turns on, is if client's connected
-  .catch(error => handleError(error));
-
-
+// client.connect()
+//   .then(() => {
+//   }) 
+//   .catch(error => handleError(error));
+app.listen(PORT, () => console.log(`listening on ${PORT}`));
 
 
 
