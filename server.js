@@ -19,6 +19,7 @@ client.on('error', err => console.error(err));
 let latitude;
 let longitude;
 
+//---------------------------LOCATION------------------------------------
 app.get('/location', (request, response) =>{
   let searchQuery = request.query.data;
   const URL = `https://maps.googleapis.com/maps/api/geocode/json?address=${searchQuery}&key=${process.env.GEOCODE_API_KEY}`;
@@ -38,6 +39,8 @@ app.get('/location', (request, response) =>{
 
 })
 
+
+//----------------------------WEATHER--------------------------------------
 app.get('/weather', (request, response) => {
 
   const URL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${latitude},${longitude}`
@@ -48,6 +51,12 @@ app.get('/weather', (request, response) => {
         return new Weather(obj);
 
       })
+
+      //code for part two goes here
+      let sql = 'INSERT INTO locationtable (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
+      let safeValues = [location.search_query, location.formatted_query, location.latitude, location.longitude];
+      client.query(sql,safeValues).then().catch();
+
       response.status(200).send(weatherForecast);
     })
     .catch(error => {
