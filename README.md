@@ -6,11 +6,24 @@ Estimate of time needed to complete: __2 hours___
 
 Start time: __9:25am___
 
-Finish time: _____
+Finish time: __10:57am___
 
-Actual time needed to complete: _____
+Actual time needed to complete: __1.5 hour___
 
-# Project Name
+
+
+Number and name of feature: _______2. Server_______
+
+Estimate of time needed to complete: ___2__
+
+Start time: __11:00am__
+
+Finish time: __Not yet finished___
+
+Actual time needed to complete: __Over 2 hours___
+
+# Project Name: Lab-08-back-end
+
 
 **Author**: David Zheng and Corey Marchand 
 **Version**: 1.0.0 (increment the patch/fix version number if you make more commits past your first submission)
@@ -25,9 +38,9 @@ As a user, I want the application to perform quickly so that I can search for lo
 <!-- Provide a detailed description of the application design. What technologies (languages, libraries, etc) you're using, and any other relevant design information. -->
 
 ## Change Log
-<!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
+Finished part 1 at 11:00 am.
 
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+Currently working on Part 2. 
 
 ## Credits and Collaborations
 David Zheng, Corey Marchand, and Kyungrae Kim
