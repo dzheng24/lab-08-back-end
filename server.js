@@ -2,22 +2,19 @@
 
 // server setup
 const express = require('express');
+require('dotenv').config();
 const app = express();
 const cors = require('cors');
 const pg = require('pg');
 const PORT = process.env.PORT || 3000;
-require('dotenv').config();
 const superagent = require('superagent');
 app.use(cors());
 
 // connecting to the database
 const client = new pg.Client(process.env.DATABASE_URL);
+client.connect();
 client.on('error', err => console.error(err));
 
-
-//global variables
-let latitude;
-let longitude;
 
 //---------------------------LOCATION------------------------------------
 app.get('/location', (request, response) =>{
@@ -27,11 +24,12 @@ app.get('/location', (request, response) =>{
   superagent.get(URL)
     .then(superagentResults => {
       let locationData = superagentResults.body.results[0];
-      console.log(superagentResults.body.results[0].geometry);
       const location = new Location(searchQuery, locationData);
-      latitude = location.latitude;
-      longitude = location.longitude;
-      response.status(200).send(location);
+      return saveLocation(location)
+        .then(result=>{
+          location.id = result.rows[0].id;
+          response.status(200).send(location);
+        })     
     })
     .catch(error => {
       handleError(error, response);
@@ -42,31 +40,27 @@ app.get('/location', (request, response) =>{
 
 //----------------------------WEATHER--------------------------------------
 app.get('/weather', (request, response) => {
-
-  const URL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${latitude},${longitude}`
+  const URL = `https://api.darksky.net/forecast/${process.env.WEATHER_API_KEY}/${request.query.data.latitude},${request.query.data.longitude}`
   superagent.get(URL)
     .then(superagentResults => {
       let weatherData = superagentResults.body.daily.data;
       const weatherForecast = weatherData.map(obj => {
-        return new Weather(obj);
-
+        let oneDay = new Weather(obj);    
+        saveWeather(oneDay, request);
+        return oneDay;
       })
 
-      //code for part two goes here
-      let sql = 'INSERT INTO locationtable (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4);';
-      let safeValues = [location.search_query, location.formatted_query, location.latitude, location.longitude];
-      client.query(sql,safeValues).then().catch();
-
+      //code for part two goes here   
       response.status(200).send(weatherForecast);
     })
     .catch(error => {
       handleError(error, response);
     })
-
 })
 
+//---------------------------------Events--------------------------------------------------
 app.get('/events', (request, response) => {
-  const URL = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${longitude}&location.latitude=${latitude}&expand=venue&token=${process.env.EVENTBRITE_API_KEY}`;
+  const URL = `https://www.eventbriteapi.com/v3/events/search?location.longitude=${request.query.data.longitude}&location.latitude=${request.query.data.latitude}&expand=venue&token=${process.env.EVENTBRITE_API_KEY}`;
 
 
   superagent.get(URL)
@@ -75,13 +69,29 @@ app.get('/events', (request, response) => {
       const eventSchedule = eventData.map(obj => {
         return new Event(obj);
       })
-      console.log(eventSchedule);
+      // console.log(eventSchedule);
       response.status(200).send(eventSchedule);
     })
     .catch(error => {
       handleError(error, response);
     })
 })
+
+
+// Tutor w/ Dan
+
+function saveLocation(location){
+  let sql = `INSERT INTO locationtable (search_query, formatted_query, latitude, longitude) VALUES ($1, $2, $3, $4) RETURNING id;`;
+  let safeValues = [location.search_query, location.formatted_query, location.latitude, location.longitude];
+  return client.query(sql,safeValues);
+}
+
+function saveWeather(oneDay, request){
+  let sql = `INSERT INTO weather (forecast, time, location_id) VALUES ($1, $2, $3);`;
+  let safeValues = [oneDay.forecast, oneDay.time, request.query.data.id];
+  client.query(sql,safeValues);
+}
+
 
 
 function Event(obj){
